@@ -1,0 +1,30 @@
+language: node_js
+node_js:
+ - "8"
+
+branches:
+ only:
+  - master
+
+before_install:
+- npm config set //registry.npmjs.org/:_authToken $NPM_API_KEY
+
+install:
+- npm install
+
+script:
+- npm run-script build
+- npm run-script coverage
+
+before_deploy:
+- ./scripts/prepare-deployment.sh
+
+deploy:
+- skip_cleanup: true
+  provider: firebase
+  on:
+    branch: master
+  token:
+    secure: "$FIREBASE_SECRET"
+  project: "achievements-dev"
+

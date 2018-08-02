@@ -1,0 +1,318 @@
+{
+  "rules": {
+    "activities": {
+      ".read": "auth != null",
+      "$problemKey": {
+        ".write": "auth != null && (
+            newData.child('owner').val() == auth.uid
+        )"
+      }
+    },
+    "admins": {
+      ".write": false,
+      "$userKey": {
+        ".read": "auth != null"
+      }
+    },
+    "api_tokens": {
+      ".read": false,
+      ".write": false
+    },
+    "assignments": {
+      "$courseKey": {
+        ".read": "auth != null && root.child('courses/' + $courseKey).exists() &&
+          (root.child('courses/' + $courseKey + '/owner').val() == auth.uid ||
+           root.child('courseMembers/' + $courseKey + '/' + auth.uid).exists())",
+        ".write": "auth != null && root.child('courses/' + $courseKey).exists() &&
+          (root.child('courses/' + $courseKey + '/owner').val() == auth.uid ||
+          root.child('courseAssistants/' + $courseKey + '/' + auth.uid).exists())"
+      }
+    },
+    "blacklistActions": {
+      ".read": true,
+      ".write": false
+    },
+    "cohortCourses": {
+      ".read": true,
+      ".write": false,
+      "$cohortKey": {
+        "$courseKey": {
+          ".write": "
+            auth != null &&
+            auth.uid == root.child('/cohorts/' + $cohortKey + '/owner').val()
+          "
+        }
+      }
+    },
+    "cohorts": {
+      ".read": true,
+      ".write": false,
+      ".indexOn": ["owner", "isPublic"],
+      "$cohortKey": {
+        ".write": "auth != null &&
+          newData.exists() &&
+          !newData.child('isPublic').exists() &&
+          (
+            (
+              !data.exists() &&
+                newData.child('owner').exists() &&
+                newData.child('owner').val() == auth.uid
+            ) || (
+              data.exists() && data.child('owner').val() == auth.uid
+            )
+          )
+        "
+      }
+    },
+    "completedActivities": {
+      "$userKey": {
+        ".read": "auth != null && $userKey == auth.uid",
+        ".write": "auth != null && $userKey == auth.uid"
+      }
+    },
+    "courseMembers": {
+      ".read": "auth != null",
+      "$courseKey": {
+        ".write": "
+          auth != null && (
+            root.child('courses/' + $courseKey + '/owner').val() == auth.uid ||
+            root.child('courseAssistants/' + $courseKey + '/' + auth.uid).exists()
+          )
+        ",
+        "$studentKey": {
+          ".write": "
+            auth != null &&
+            $studentKey == auth.uid &&
+            root.child('studentCoursePasswords/' + $courseKey).exists() &&
+            root.child('studentCoursePasswords/' + $courseKey + '/' + $studentKey).exists()
+          "
+        }
+      }
+    },
+    "coursePasswords": {
+      "$courseKey": {
+        ".read": "auth != null &&
+          root.child('courses/' + $courseKey + '/owner').val() == auth.uid",
+        ".write": "auth != null && (
+          !root.child('courses/' + $courseKey).exists() ||
+          root.child('courses/' + $courseKey).exists() &&
+          root.child('courses/' + $courseKey + '/owner').val() == auth.uid)"
+      }
+    },
+    "courseAssistants": {
+      "$courseKey": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid == root.child('courses/' + $courseKey + '/owner').val()"
+      }
+    },
+    "courses": {
+      ".read": "auth != null",
+      ".indexOn": ["owner", "isPublic"],
+      "$courseKey": {
+        ".read": "auth != null",
+        ".write": "
+          auth != null &&
+          !newData.child('isPublic').exists() &&
+          (
+            (
+              !data.exists() &&
+                newData.child('owner').exists() &&
+                newData.child('owner').val() == auth.uid
+            ) || (
+              data.exists() && data.child('owner').val() == auth.uid
+            )
+          )
+        "
+      }
+    },
+    "jupyterSolutionsQueue": {
+      "responses": {
+        "$taskKey": {
+          ".read": "auth != null",
+          ".write": "!newData.exists()"
+        }
+      },
+      "tasks": {
+        ".indexOn": ["_state"],
+        "$taskKey": {
+          ".read": false,
+          ".write": "auth != null && newData.child('owner').val() == auth.uid"
+        }
+      }
+    },
+    "logged_events": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": "createdAt"
+    },
+    "moreProblemsRequests": {
+      "$requestKey": {
+        ".write": "auth != null &&
+          newData.child('sender').exists() &&
+          auth.uid == newData.child('sender').val()"
+      }
+    },
+    "pathProblems": {
+      ".read": "auth != null",
+      "$userKey": {
+        ".write": "auth != null && auth.uid == $userKey && !newData.child('path').exists()"
+      }
+    },
+    "paths": {
+      ".read": "auth != null",
+      ".indexOn": ["owner", "isPublic"],
+      "$pathKey": {
+        ".write": "auth != null && (
+        !data.exists() && newData.child('owner').val() == auth.uid ||
+        data.exists() && (
+        data.child('owner').val() == auth.uid ||
+        data.child('assistants/').exists() && data.child('assistants/' + auth.uid).val() == true
+        )
+        )"
+      }
+    },
+    "problemSolutions": {
+      "$problemKey": {
+        "$userKey": {
+          ".read": "auth != null",
+          ".write": "auth != null && auth.uid == $userKey"
+        }
+      }
+    },
+    "secrets": {
+      ".read": "auth != null && root.child('admins/' + auth.uid).exists()"
+    },
+    "solutions": {
+      ".read": "false",
+      "$courseKey": {
+        ".read": "
+          auth != null && (
+            root.child('courses/' + $courseKey + '/owner').val() == auth.uid ||
+            root.child('courseAssistants/' + $courseKey + '/' + auth.uid).exists()
+          )
+        ",
+        ".write": "
+          auth != null && (
+            root.child('courses/' + $courseKey + '/owner').val() == auth.uid ||
+            root.child('courseAssistants/' + $courseKey + '/' + auth.uid).exists()
+          )
+        ",
+        "$userKey": {
+          ".read": "
+            auth != null &&
+              (
+                ($userKey == auth.uid &&
+                root.child('courseMembers/' + $courseKey + '/' + auth.uid).exists()
+              ) || root.child('courses/' + $courseKey + '/owner').val() == auth.uid )
+          ",
+          ".write": "
+            auth != null &&
+            $userKey == auth.uid &&
+            root.child('courseMembers/' + $courseKey + '/' + auth.uid).exists()
+          "
+        }
+      }
+    },
+    "studentCoursePasswords": {
+      ".read": "false",
+      "$courseKey": {
+        "$studentKey": {
+          ".write": "auth != null && (
+              $studentKey == auth.uid ||
+              root.child('courses/' + $courseKey + '/owner').val() == auth.uid
+            ) &&
+            root.child('coursePasswords/' + $courseKey).exists() &&
+            root.child('coursePasswords/' + $courseKey).val() == newData.val()"
+        }
+      }
+    },
+    "studentJoinedCourses": {
+      ".read": false,
+      "$studentKey": {
+        ".read": "auth != null && auth.uid == $studentKey",
+        "$courseKey": {
+          ".write": "auth != null && ((
+              $studentKey == auth.uid &&
+              root.child('studentCoursePasswords/' + $courseKey).exists() &&
+              root.child('studentCoursePasswords/' + $courseKey + '/' + $studentKey).exists()
+            ) || (
+              root.child('courses/' + $courseKey + '/owner').val() == auth.uid
+            ))"
+        }
+      }
+    },
+    "studentJoinedPaths": {
+      "$studentKey": {
+        ".read": "auth != null && auth.uid == $studentKey",
+        "$pathKey": {
+          ".write": "auth != null &&
+              $studentKey == auth.uid &&
+              root.child('paths/' + $pathKey).exists()
+            "
+        }
+      }
+    },
+    "updateProfileQueue": {
+      "tasks": {
+        ".indexOn": ["_state"],
+        "$taskKey": {
+          ".read": "auth != null",
+          ".write": "
+            auth != null &&
+            newData.exists() &&
+            newData.hasChild('uid')
+          "
+        }
+      }
+    },
+    "userAchievements": {
+      ".read": "auth != null",
+      "$userKey": {
+        ".write": "auth != null && auth.uid == $userKey",
+        ".read": "auth != null",
+        "CodeCombat": {
+          "achievements": {
+            "$achievementId": {
+              ".write": false,
+              ".validate": false
+            }
+          }
+        }
+      }
+    },
+    "userRecommendations": {
+      "$userKey": {
+        ".read": "auth != null && auth.uid == $userKey",
+        ".write": false
+      }
+    },
+    "users": {
+      ".read": "auth != null",
+      "$userKey": {
+        ".write": "auth != null && auth.uid == $userKey",
+      }
+    },
+    "usersPrivate": {
+      ".read": false,
+      "$userKey": {
+        ".read": "auth != null && auth.uid == $userKey",
+        ".write": "auth != null && auth.uid == $userKey"
+      }
+    },
+    "visibleSolutions": {
+      ".read": "false",
+      "$courseKey": {
+        ".read": "auth != null  &&
+          (root.child('courseMembers/' + $courseKey + '/' + auth.uid).exists() ||
+          root.child('courses/' + $courseKey + '/owner').val() == auth.uid )
+        ",
+        ".write": "
+          auth != null && (
+            root.child('courses/' + $courseKey + '/owner').val() == auth.uid ||
+            root.child('courseAssistants/' + $courseKey + '/' + auth.uid).exists()
+          )
+        "
+      }
+    }
+  }
+}
